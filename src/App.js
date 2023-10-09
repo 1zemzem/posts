@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "./styles/App.css";
 import PostList from "./components/PostList";
-import Button from "./components/UI/button/Button";
-import Input from "./components/UI/button/input/Input";
+import PostForm from "./components/PostForm";
+import Select from "./components/UI/select/Select";
 
 function App() {
   const [posts, setPosts] = useState([
@@ -11,41 +11,39 @@ function App() {
     { id: 3, title: "javaScript3", body: "description3" },
   ]);
 
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [selectedSort, setSelectedSort] = useState("");
 
-  const addNewPost = (e) => {
-    e.preventDefault();
-    const newPost = {
-      id: Date.now(),
-      title,
-      body,
-    };
-    setPosts([...posts, newPost])
-    setTitle("")
-    setBody("")
+  const createPost = (newPost) => {
+    setPosts([...posts, newPost]);
+  };
+  const removePost = (post) => {
+    setPosts(posts.filter((i) => i.id !== post.id));
+  };
+
+  const sortPosts = (sort) => {
+    setSelectedSort(sort);
+    setPosts([...posts].sort((a, b) => a[sort].localeCompare(b[sort])))
   };
 
   return (
     <div className="App">
-      <form>
-        <Input
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          type="text"
-          placeholder="Post Title"
-        />
-        <Input
-          value={body}
-          onChange={e => setBody(e.target.value)}
-          type="text"
-          placeholder="Post Description"
-        />
-        <Button onClick={addNewPost}>Add Post</Button>
-      </form>
-      <PostList posts={posts} title="Post List" />
+      <PostForm create={createPost} />
+      <hr style={{ margin: "15px 0" }} />
+      <Select
+        value={selectedSort}
+        onChange={sortPosts}
+        defaltValue="sort by"
+        options={[
+          { value: "title", name: "by title" },
+          { value: "body", name: "by description" },
+        ]}
+      />
+      {posts.length !== 0 ? (
+        <PostList remove={removePost} posts={posts} title="Post List" />
+      ) : (
+        <h1 style={{ textAlign: "center" }}>No posts</h1>
+      )}
     </div>
   );
 }
-
 export default App;
