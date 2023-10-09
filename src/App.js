@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import "./styles/App.css";
 import PostList from "./components/PostList";
 import PostForm from "./components/PostForm";
-import Select from "./components/UI/select/Select";
+import PostFilter from "./components/PostFilter";
 
 function App() {
   const [posts, setPosts] = useState([
@@ -11,38 +11,40 @@ function App() {
     { id: 3, title: "javaScript3", body: "description3" },
   ]);
 
-  const [selectedSort, setSelectedSort] = useState("");
+  const [filter, setFilter] = useState({ sort: "", query: "" });
+
+  const sortedPosts = useMemo(() => {
+    if (filter.sort) {
+      return [...posts].sort((a, b) =>
+        a[filter.sort].localeCompare(b[filter.sort])
+      );
+    }
+    return posts;
+  }, [filter.sort, posts]);
+
+  const sortedAndSearchPosts = useMemo(() => {
+    return sortedPosts.filter((post) =>
+      post.title.toLowerCase().includes(filter.query.toLowerCase())
+    );
+  }, [filter.query, sortedPosts]);
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
   };
   const removePost = (post) => {
-    setPosts(posts.filter((i) => i.id !== post.id));
-  };
-
-  const sortPosts = (sort) => {
-    setSelectedSort(sort);
-    setPosts([...posts].sort((a, b) => a[sort].localeCompare(b[sort])))
+    setPosts(posts.filter((p) => p.id !== post.id));
   };
 
   return (
     <div className="App">
       <PostForm create={createPost} />
       <hr style={{ margin: "15px 0" }} />
-      <Select
-        value={selectedSort}
-        onChange={sortPosts}
-        defaltValue="sort by"
-        options={[
-          { value: "title", name: "by title" },
-          { value: "body", name: "by description" },
-        ]}
+      <PostFilter filter={filter} setFilter={setFilter} />
+      <PostList
+        remove={removePost}
+        posts={sortedAndSearchPosts}
+        title="Post List"
       />
-      {posts.length !== 0 ? (
-        <PostList remove={removePost} posts={posts} title="Post List" />
-      ) : (
-        <h1 style={{ textAlign: "center" }}>No posts</h1>
-      )}
     </div>
   );
 }
